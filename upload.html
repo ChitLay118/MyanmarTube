@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Upload Video</title>
+</head>
+<body>
+  <h2>Upload Video</h2>
+  <input type="file" id="fileInput" accept="video/*">
+  <button id="uploadBtn">Upload</button>
+  <div id="status"></div>
+
+  <script>
+    document.getElementById('uploadBtn').addEventListener('click', async () => {
+      const fileInput = document.getElementById('fileInput');
+      const file = fileInput.files[0];
+      if (!file) return alert("Please select a file.");
+
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64 = reader.result.split(',')[1];
+        document.getElementById('status').innerText = "Uploading…";
+        const resp = await fetch("/api/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filename: file.name, fileDataBase64: base64 })
+        });
+        const j = await resp.json();
+        if (j.success) {
+          document.getElementById('status').innerHTML = `Uploaded! <a href="${j.link}" target="_blank">View/Download</a>`;
+        } else {
+          document.getElementById('status').innerText = "Upload failed.";
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  </script>
+</body>
+</html>
